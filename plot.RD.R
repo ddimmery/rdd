@@ -17,6 +17,8 @@
 #' should be a vector of length two of the format \code{c(min,max)}. To plot
 #' from the minimum to the maximum value, simply enter \code{c("min","max")}.
 #' @param ... unused
+#' @details It is important to note that this function will only plot the discontinuity
+#' using the bandwidth which is first in the vector of bandwidths passed to \code{RDestimate}
 #' @include RDestimate.R
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
@@ -28,7 +30,7 @@ plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
   if(!frm){
     x$call$frame<-TRUE
     x$call$verbose<-FALSE
-    x<-eval(x$call)
+    x<-eval.parent(x$call)
   }
   d<-x$frame
   
@@ -45,10 +47,7 @@ plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
   else
     cut<-0
   
-  if("bw" %in% names(x$call))
-    bw<-x$call$bw
-  else
-    bw<-IKbandwidth(X=d$X,Y=d$Y,cutpoint=cut,kernel=kern, verbose=FALSE)
+  bw<-x$bw[1]
   
   if(missing(range))
      range<-c(cut-10*bw,cut+10*bw)

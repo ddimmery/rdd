@@ -15,7 +15,10 @@
 #' @param data an optional data frame
 #' @param subset an optional vector specifying a subset of observations to be used
 #' @param cutpoint the cutpoint. If omitted, it is assumed to be 0.
-#' @param bw the bandwidth. If omitted, it is calculated using the Imbens-Kalyanaraman method.
+#' @param bw a numeric vector specifying the bandwidths at which to estimate the RD. 
+#' If omitted, the bandwidth is calculated using the Imbens-Kalyanaraman method, and then estimated
+#' with that bandwidth, half that bandwidth, and twice that bandwidth. If only a single value is passed into the function,
+#' the RD will similarly be estimated at that bandwidth, half that bandwidth, and twice that bandwidth.
 #' @param kernel a string specifying the kernel to be used in the local linear fitting. 
 #' \code{"triangular"} kernel is the default and is the "correct" theoretical kernel to be used for 
 #' edge estimation as in RDD (Lee and Lemieux 2010). Other options are \code{"rectangular"}, 
@@ -37,18 +40,20 @@
 #' the estimated regression discontinuity. The object of class \code{RD} is a list 
 #' containing the following components:
 #' \item{type}{a string denoting either \code{"sharp"} or \code{"fuzzy"} RDD.}
-#' \item{est}{the estimate of the discontinuity in the outcome under a sharp design, 
-#' or the Wald estimator in the fuzzy design}
-#' \item{se}{the standard error}
-#' \item{z}{the z statistic}
-#' \item{p}{the p value}
-#' \item{ci}{the vector of the 95% confidence interval, \code{c("CI Lower Bound","CI Upper Bound")}}
-#' \item{bw}{the bandwidth}
+#' \item{est}{numeric vector of the estimate of the discontinuity in the outcome under a sharp design, 
+#' or the Wald estimator in the fuzzy design for each corresponding bandwidth}
+#' \item{se}{numeric vector of the standard error for each corresponding bandwidth}
+#' \item{z}{numeric vector of the z statistic for each corresponding bandwidth}
+#' \item{p}{numeric vector of the p value for each corresponding bandwidth}
+#' \item{ci}{the matrix of the 95% confidence interval, \code{c("CI Lower Bound","CI Upper Bound")} 
+#' for each corresponding bandwidth}
+#' \item{bw}{numeric vector of each bandwidth used in estimation}
+#' \item{obs}{vector of the number of observations within the corresponding bandwidth}
 #' \item{call}{the matched call}
 #' \item{na.action}{the observations removed from fitting due to missingness}
-#' \item{model}{(if requested) For a sharp design, the \code{lm} object is returned.
-#' For a fuzzy design, a list is returned with two elements: \code{firststage}, the first stage \code{lm}
-#' object, and \code{iv}, the \code{ivreg} object.}
+#' \item{model}{(if requested) For a sharp design, a list of the \code{lm} objects is returned.
+#' For a fuzzy design, a list of lists is returned, each with two elements: \code{firststage}, the first stage \code{lm}
+#' object, and \code{iv}, the \code{ivreg} object. A model is returned for each corresponding bandwidth.}
 #' \item{frame}{(if requested) Returns the model frame used in fitting.}
 #' @seealso \code{\link{summary.RD}}, \code{\link{plot.RD}}, \code{\link{DCdensity}} \code{\link{IKbandwidth}}, \code{\link{kernelwts}}, \code{\link{vcovHC}}, 
 #' \code{\link{ivreg}}, \code{\link{lm}}
@@ -57,7 +62,8 @@
 #' @references Lee, David and David Card. (2010) "Regression discontinuity inference with specification error," \emph{Journal of Econometrics}. 142(2): 655-674. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.003}
 #' @references Angrist, Joshua and Jorn-Steffen Pischke. (2009) \emph{Mostly Harmless Econometrics}. Princeton: Princeton University Press.
 #' @import AER sandwich lmtest
-#' @include IKbandwidth.R kernelwts.R
+#' @include IKbandwidth.R 
+#' @include kernelwts.R
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 #' @examples
@@ -129,17 +135,48 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
         dat.out<-data.frame(X,Y,Z)
     }
   }
-  if(is.null(bw)) bw<-IKbandwidth(X=X,Y=Y,cutpoint=cutpoint,kernel=kernel, verbose=verbose)
+  if(is.null(bw)) {
+    bw<-IKbandwidth(X=X,Y=Y,cutpoint=cutpoint,kernel=kernel, verbose=verbose)
+    bws<-c(bw,.5*bw,2*bw)
+    names(bws)<-c("LATE","Half-BW","Double-BW")
+  } else if (length(bw)==1) {
+    bws<-c(bw,.5*bw,2*bw)
+    names(bws)<-c("LATE","Half-BW","Double-BW")
+  } else {
+    bws<-bw
+  }
+  #Setup values to be returned
+  o<-list()
+  o$type<-type
+  o$call<-call
+  o$est<-vector(length=length(bws),mode="numeric")
+  names(o$est)<-names(bws)
+  o$bw<-as.vector(bws)
+  o$se<-vector(mode="numeric")
+  o$z<-vector(mode="numeric")
+  o$p<-vector(mode="numeric")
+  o$obs<-vector(mode="numeric")
+  o$ci<-matrix(NA,nrow=length(bws),ncol=2)
+  o$model<-list()
+  if(type=="fuzzy") {
+    o$model$firststage<-list()
+    o$model$iv<-list()
+  }
+  o$frame<-list()
+  o$na.action<-which(na.ok==FALSE)
+  class(o)<-"RD"
+  
+  for(bw in bws){
+    ibw<-which(bw==bws)
   #Subset to within the bandwidth, except for when using gaussian weighting
   sub<-X>=(cutpoint-bw) & X<=(cutpoint+bw)
+  X<-X-c
   
   if(kernel=="gaussian") 
     sub<-TRUE
-  Y<-Y[sub]
-  X<-X[sub]
 
   w<-kernelwts(X,cutpoint,bw,kernel=kernel)
-               
+  o$obs[ibw]<-sum(w>0)
   Xl<-(X<cutpoint)*X
   Xr<-(X>=cutpoint)*X
   Tr<-as.integer(X>=cutpoint)
@@ -151,7 +188,6 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       if(!is.null(covs)) cat("Covariates:",paste(names(covs),collapse=", "),"\n")
     }
     if(!is.null(covs)) {
-      covs<-subset(covs,sub)
       data<-data.frame(Y,Tr,Xl,Xr,covs,w)
       form<-as.formula(paste("Y~Tr+Xl+Xr+",paste("Tr*",names(covs),collapse="+",sep=""),sep=""))
     } else {
@@ -159,25 +195,19 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       form<-as.formula(Y~Tr+Xl+Xr)
     }
 
-    mod<-lm(form,weights=w,data=data)
-    est<-coef(mod)["Tr"]
-    names(est)<-"LATE Estimate"
+    mod<-lm(form,weights=w,data=subset(data,w>0))
+    o$est[ibw]<-coef(mod)["Tr"]
     if (is.null(cluster)) {
-      se<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
+      o$se[ibw]<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
     } else {
-      se<-robust.se(mod,cluster)[[2]][2,2]
+      o$se[ibw]<-robust.se(mod,cluster)[[2]][2,2]
     }
-    names(se)<-"LATE SE"
-    z<-est/se
-    names(z)<-"z statistic"
-    p<-2*pnorm(abs(z),lower.tail=F)
-    names(p)<-"P>|Z|"
-    ci<-c(est-qnorm(.975)*se,est+qnorm(.975)*se)
-    names(ci)<-c("CI Lower Bound","CI Upper Bound")
-    o<-list(type=type,est=est,se=se,z=z,p=p,ci=ci,bw=bw,call=call,na.action=(which(na.ok==FALSE)))
-    if(model) o$model=mod
-    if(frame) o$frame=dat.out
-    class(o)<-"RD"
+    o$z[ibw]<-o$est[ibw]/o$se[ibw]
+    o$p[ibw]<-2*pnorm(abs(o$z[ibw]),lower.tail=F)
+    o$ci[ibw,]<-c(o$est[ibw]-qnorm(.975)*o$se[ibw],o$est[ibw]+qnorm(.975)*o$se[ibw])
+
+    if(model) o$model[[ibw]]=mod
+    if(frame) o$frame[[ibw]]=dat.out
     return(o)
   } else {
     if(verbose){
@@ -188,9 +218,8 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       cat("Treatment variable:",all.vars(formula(formula,rhs=1,lhs=F))[2],"\n")
       if(!is.null(covs)) cat("Covariates:",paste(names(covs),collapse=", "),"\n")
     }
-    Z<-Z[sub]
+
     if(!is.null(covs)) {
-      covs<-subset(covs,sub)
       data<-data.frame(Y,Tr,Xl,Xr,Z,covs,w)
       form<-as.Formula(paste(
               "Y~Z+Xl+Xr+",paste(names(covs),collapse="+"),
@@ -201,32 +230,30 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       form<-as.Formula(Y~Z+Xl+Xr|Tr+Xl+Xr)
       form1<-as.formula(Z~Tr+Xl+Xr)
     }
-    mod1<-lm(form1,weights=w,data=data)
-    mod<-ivreg(form,weights=w,data=data)
+    mod1<-lm(form1,weights=w,data=subset(data,w>0))
+    mod<-ivreg(form,weights=w,data=subset(data,w>0))
     if(verbose==TRUE) {
       cat("First stage:\n")
       print(summary(mod1))
       cat("IV-RD\n")
       print(summary(mod))
     }
-    est<-coef(mod)["Z"]
-    names(est)<-"LATE Estimate"
+    o$est[ibw]<-coef(mod)["Z"]
     if (is.null(cluster)) {
-      se<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
+      o$se[ibw]<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
     } else {
-      se<-robust.se(mod,cluster)[[2]][2,2]
+      o$se[ibw]<-robust.se(mod,cluster)[[2]][2,2]
     }
-    names(se)<-"LATE SE"
-    z<-est/se
-    names(z)<-"z statistic"
-    p<-2*pnorm(abs(z),lower.tail=F)
-    names(p)<-"P>|Z|"
-    ci<-c(est-qnorm(.975)*se,est+qnorm(.975)*se)
-    names(ci)<-c("CI Lower Bound","CI Upper Bound")
-    o<-list(type=type,est=est,se=se,z=z,p=p,ci=ci,bw=bw,call=call,na.action=(which(na.ok==FALSE)))
-    if(model) o$model=list(firststage=mod1,iv=mod)
+    o$z[ibw]<-o$est[ibw]/o$se[ibw]
+    o$p[ibw]<-2*pnorm(abs(o$z[ibw]),lower.tail=F)
+    o$ci[ibw,]<-c(o$est[ibw]-qnorm(.975)*o$se[ibw],o$est[ibw]+qnorm(.975)*o$se[ibw])
+    
+    if(model) {
+      o$model$firststage[[ibw]]<-mod1
+      o$model$iv[[ibw]]=mod
+    }
     if(frame) o$frame=dat.out
-    class(o)<-"RD"
-    return(o)
   }
+  }
+  return(o)
 }
