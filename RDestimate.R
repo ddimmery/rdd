@@ -170,7 +170,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     ibw<-which(bw==bws)
   #Subset to within the bandwidth, except for when using gaussian weighting
   sub<-X>=(cutpoint-bw) & X<=(cutpoint+bw)
-
+  X<-X-c
   
   if(kernel=="gaussian") 
     sub<-TRUE
