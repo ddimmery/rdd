@@ -106,7 +106,7 @@ DCdensity <- function(runvar,cutpoint,bin=NULL,bw=NULL,verbose=FALSE,plot=TRUE,e
       6*rcoef[4]*cellmpright +
       12*rcoef[5]*cellmpright*cellmpright
     hright <- 3.348*(mse4*( r - cutpoint ) / sum(fppright*fppright))^(1/5)
-    print(r-cutpoint)
+
 
     bw = .5*( hleft + hright )
     if(verbose) cat("Using calculated bandwidth: ",sprintf("%.3f",bw),"\n")

@@ -21,6 +21,8 @@ Drew Dimmery <[drewd@nyu.edu](mailto:drewd@nyu.edu)>
 Changelog
 ---------
 
+    Version: 0.52
+    * Fixed bug with sharp RD estimation.
 	* Fixed bug when cutpoint not equal to zero.
 
     Version: 0.51
@@ -30,7 +32,9 @@ Changelog
 	* Some outputs have been modified to reflect this change.
 	
     Version: 0.50 
-    * Added better error messages. Fixed bug in plot.RDD. Other minor code changes. 
+    * Added better error messages. 
+	* Fixed bug in plot.RDD. 
+	* Other minor code changes. 
 	
     Version: 0.42
     * Submission issue. 

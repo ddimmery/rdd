@@ -208,7 +208,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
 
     if(model) o$model[[ibw]]=mod
     if(frame) o$frame[[ibw]]=dat.out
-    return(o)
+
   } else {
     if(verbose){
       cat("Running Fuzzy RD\n")
