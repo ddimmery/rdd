@@ -1,4 +1,4 @@
-rdd 0.51
+rdd 0.52
 ========
 
 This package provides the tools to undertake estimation in Regression 
