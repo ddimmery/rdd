@@ -1,4 +1,4 @@
-rdd 0.53
+rdd 0.54
 ========
 
 This package provides the tools to undertake estimation in Regression 
@@ -21,6 +21,10 @@ Drew Dimmery <[drewd@nyu.edu](mailto:drewd@nyu.edu)>
 Changelog
 ---------
 
+    Version: 0.54
+    * Removed LICENSE to comport with CRAN policy.
+    * Renamed VERSION to NEWS.
+    
     Version: 0.53
     * Fixed bug in the estimation of LATEs away from zero.
     
