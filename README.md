@@ -1,4 +1,4 @@
-rdd 0.52
+rdd 0.53
 ========
 
 This package provides the tools to undertake estimation in Regression 
@@ -21,6 +21,9 @@ Drew Dimmery <[drewd@nyu.edu](mailto:drewd@nyu.edu)>
 Changelog
 ---------
 
+    Version: 0.53
+    * Fixed bug in the estimation of LATEs away from zero.
+    
     Version: 0.52
     * Fixed bug with sharp RD estimation.
 	* Fixed bug when cutpoint not equal to zero.

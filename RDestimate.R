@@ -117,7 +117,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   X<-X[na.ok]
   Y<-Y[na.ok]
   if(type=="fuzzy") Z<-Z[na.ok]
-
+  
   if(is.null(cutpoint)) {
     cutpoint<-0
     if(verbose) cat("No cutpoint provided. Using default cutpoint of zero.\n")
@@ -145,6 +145,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   } else {
     bws<-bw
   }
+  
   #Setup values to be returned
   o<-list()
   o$type<-type
@@ -165,21 +166,23 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   o$frame<-list()
   o$na.action<-which(na.ok==FALSE)
   class(o)<-"RD"
+  X<-X-cutpoint
+  Xl<-(X<0)*X
+  Xr<-(X>=0)*X
+  Tr<-as.integer(X>=0)
   
   for(bw in bws){
     ibw<-which(bw==bws)
   #Subset to within the bandwidth, except for when using gaussian weighting
-  sub<-X>=(cutpoint-bw) & X<=(cutpoint+bw)
-  X<-X-cutpoint
+    sub<- X>=(-bw) & X<=(+bw)
   
+    
   if(kernel=="gaussian") 
     sub<-TRUE
 
-  w<-kernelwts(X,cutpoint,bw,kernel=kernel)
+  w<-kernelwts(X,0,bw,kernel=kernel)
   o$obs[ibw]<-sum(w>0)
-  Xl<-(X<cutpoint)*X
-  Xr<-(X>=cutpoint)*X
-  Tr<-as.integer(X>=cutpoint)
+    
   if(type=="sharp"){
     if(verbose) {
       cat("Running Sharp RD\n")
@@ -196,6 +199,10 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     }
 
     mod<-lm(form,weights=w,data=subset(data,w>0))
+    if(verbose==TRUE) {
+      cat("Model:\n")
+      print(summary(mod))
+    }
     o$est[ibw]<-coef(mod)["Tr"]
     if (is.null(cluster)) {
       o$se[ibw]<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
@@ -230,12 +237,13 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       form<-as.Formula(Y~Z+Xl+Xr|Tr+Xl+Xr)
       form1<-as.formula(Z~Tr+Xl+Xr)
     }
+    
     mod1<-lm(form1,weights=w,data=subset(data,w>0))
     mod<-ivreg(form,weights=w,data=subset(data,w>0))
     if(verbose==TRUE) {
       cat("First stage:\n")
       print(summary(mod1))
-      cat("IV-RD\n")
+      cat("IV-RD:\n")
       print(summary(mod))
     }
     o$est[ibw]<-coef(mod)["Z"]
