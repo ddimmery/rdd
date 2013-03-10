@@ -43,7 +43,7 @@ plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
     kern<-"triangular"
   
   if("cutpoint" %in% names(x$call)) 
-    cut<-x$call$cutpoint
+    cut<-eval.parent(x$call$cutpoint)
   else
     cut<-0
   
