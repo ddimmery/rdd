@@ -26,7 +26,7 @@
 
 plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
   frm<-FALSE
-  if("frame" %in% names(x$call)) frm<-x$call$frame
+  if("frame" %in% names(x$call)) frm<-eval.parent(x$call$frame)
   if(!frm){
     x$call$frame<-TRUE
     x$call$verbose<-FALSE
@@ -38,7 +38,7 @@ plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
     d<-d[-x$na.action,]
   
   if("kernel" %in% names(x$call)) 
-    kern<-x$call$kernel
+    kern<-eval.parent(x$call$kernel)
   else 
     kern<-"triangular"
   
