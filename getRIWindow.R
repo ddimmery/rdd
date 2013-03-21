@@ -1,4 +1,4 @@
-getWindow <- function(pval, alpha, rr, rl, obsr, obsl) {
+getRIWindow <- function(pval, alpha, rr, rl, obsr, obsl) {
   if(sum(pval>=alpha)==0) {
     pval.min = 0
     wr.i = length(rr)
@@ -27,5 +27,5 @@ getWindow <- function(pval, alpha, rr, rl, obsr, obsl) {
     Nr.con = obsr[wr.i.con]
     Nl.con = obsl[wr.i.con]  
   }
-  return(c(wr=wr, wl=wl, wr.con=wr.con, wl.con= wl.con, Nr=Nr, Nl=Nl, Nr.con=Nr.con, Nl.con=Nl.con))
+  return(list(liberal=c(wr=wr, wl=wl, Nr=Nr, Nl=Nl),conservative=c(wr=wr.con, wl= wl.con, Nr=Nr.con, Nl=Nl.con)))
 }

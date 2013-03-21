@@ -42,7 +42,7 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   maxr = length(Yr)
   
   # Sort to the left
-  indxl = order(X[X<c], decreasing=TRUE)
+  indxl = order(X[X<cutpoint], decreasing=TRUE)
   Yl = Y[X<cutpoint][indxl]
   rl = X[X<cutpoint][indxl]
   maxl = length(Yl)
@@ -53,7 +53,7 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   doFM <- "fixed.margins"%in%method
 
   # is the outcome dichotomous
-  isBinary <- sum(Y==1 | Y==0) == n
+  isBinary <- sum(Y==1 | Y==0) == Ny
   
   # Do difference in means tests
   doMeans <- "means" %in% statistic
@@ -65,17 +65,19 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   if( !(doMeans|doKS|doWX)) stop("Must select at least one statistic to calculate")
   if( !doMeans & isBinary) stop("Can only calculate difference in means statistics with binary variable.")
   
-  #Need progress bar
+  cat("Calculating bandwidths:\n")
+  prog<- txtProgressBar(initial=0, min=0, max = length(w.test), style=3)
+  i<-0
   test.window<-function(w) {
     wr <- cutpoint + w
     wl <- cutpoint - w
     ir <- rr <= wr
-    il <- rl <= wl
+    il <- rl >= wl
     nr <- sum(ir)
     nl <- sum(il)
     n <- nr + nl
     if( nl == 0 | nr ==0) return(NULL)
-    ri<-RIestimate(y0 = Yl[il], Y1 = Yr[ir], M = M, method = method, statistic = statistic, alpha = alpha)
+    ri<-RIestimate(Y0 = Yl[il], Y1 = Yr[ir], M = max.sim, method = method, statistic = statistic, alpha = alpha, verbose = verbose)
     
     diag<-c(Obsl=nl, Obsr=nr, Windowl=wl, Windowr=wr, exactFM=ri$exactFM, exactBN=ri$exactBN)
     diag<-c(diag,t.pval=ri$t.test$p.value,meanl=ri$t.test$estimate[1],meanr=ri$t.test$estimate[2])
@@ -86,48 +88,51 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
       diag<-c(diag,wxBN.pval=ri$wxBN.pval,wxFM.pval=ri$wxFM.pval)
       diag<-c(diag,ksBN.pval=ri$ksBN.pval,ksFM.pval=ri$ksFM.pval)
     }
+    i<<-i+1
+    setTxtProgressBar(prog,i)
     return(diag)
   }
   #Begin RI window selection
   
   out<-sapply(w.test, test.window)
+  close(prog)
   
   ret<-list()
   if(diag.out) ret$diag <- out
   
   if(doMeans) { #Retrieve window for diff of means
     ret$means<-list()
-    ret$means$window <- getWindow(pval=out["t.pval",], alpha = alpha, rr = out["Windowr",], 
-                                  rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    ret$means$window <- getRIWindow(pval=out["t.pval",], alpha = alpha, rr = out["Windowr",], 
+                                  rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doBN) ret$means$BN <- getWindow(pval=out["meansBN.pval",], alpha = alpha, rr = out["Windowr",], 
-                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doBN) ret$means$BN <- getRIWindow(pval=out["meansBN.pval",], alpha = alpha, rr = out["Windowr",], 
+                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doFM) ret$means$FM <- getWindow(pval=out["meansFM.pval",], alpha = alpha, rr = out["Windowr",], 
-                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doFM) ret$means$FM <- getRIWindow(pval=out["meansFM.pval",], alpha = alpha, rr = out["Windowr",], 
+                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
   }
   
   if(doKS) { # For KS
     ret$ks <- list()
-    ret$ks$window <- getWindow(pval=out["ks.pval",], alpha = alpha, rr = out["Windowr",], 
-                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    ret$ks$window <- getRIWindow(pval=out["ks.pval",], alpha = alpha, rr = out["Windowr",], 
+                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doBN) ret$ks$BN <- getWindow(pval=out["ksBN.pval",], alpha = alpha, rr = out["Windowr",], 
-                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doBN) ret$ks$BN <- getRIWindow(pval=out["ksBN.pval",], alpha = alpha, rr = out["Windowr",], 
+                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doFM) ret$ks$FM <- getWindow(pval=out["ksFM.pval",], alpha = alpha, rr = out["Windowr",], 
-                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doFM) ret$ks$FM <- getRIWindow(pval=out["ksFM.pval",], alpha = alpha, rr = out["Windowr",], 
+                                       rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
   }
   if(doWX) { # For Wilcoxon
     ret$wilcox<-list()
-    ret$wilcox$window <- getWindow(pval=out["wilcox.pval",], alpha = alpha, rr = out["Windowr",], 
-                               rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    ret$wilcox$window <- getRIWindow(pval=out["wilcox.pval",], alpha = alpha, rr = out["Windowr",], 
+                               rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doBN) ret$wilcox$BN <- getWindow(pval=out["wxBN.pval",], alpha = alpha, rr = out["Windowr",], 
-                                    rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doBN) ret$wilcox$BN <- getRIWindow(pval=out["wxBN.pval",], alpha = alpha, rr = out["Windowr",], 
+                                    rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     
-    if(doFM) ret$wilcox$FM <- getWindow(pval=out["wxFM.pval",], alpha = alpha, rr = out["Windowr",], 
-                                    rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsr",])
+    if(doFM) ret$wilcox$FM <- getRIWindow(pval=out["wxFM.pval",], alpha = alpha, rr = out["Windowr",], 
+                                    rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
   }
   
   return(ret)
