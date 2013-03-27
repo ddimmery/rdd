@@ -21,6 +21,8 @@ Drew Dimmery <[drewd@nyu.edu](mailto:drewd@nyu.edu)>
 Changelog
 ---------
 
+    * Fixed an odd bug with fuzzy RD, which caused misreporting of summary information.
+
     Version: 0.54
     * Removed LICENSE to comport with CRAN policy.
     * Renamed VERSION to NEWS.

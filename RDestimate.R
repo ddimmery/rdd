@@ -116,7 +116,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   }
   X<-X[na.ok]
   Y<-Y[na.ok]
-  if(type=="fuzzy") Z<-Z[na.ok]
+  if(type=="fuzzy") Z<-as.double(Z[na.ok])
   
   if(is.null(cutpoint)) {
     cutpoint<-0
