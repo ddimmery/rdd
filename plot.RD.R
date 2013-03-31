@@ -32,7 +32,7 @@ plot.RD <- function(x,gran=400,bins=100,which=1,range,...) {
     x$call$verbose<-FALSE
     x<-eval.parent(x$call)
   }
-  d<-x$frame
+  d<-x$frame[[1]]
 
   if(length(x$na.action)>0)
     d<-d[-x$na.action,]
