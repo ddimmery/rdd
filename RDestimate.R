@@ -109,7 +109,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   }
   covs<-NULL
   if(length(formula)[2]>1){
-    covs<-model.frame(formula,rhs=2,lhs=0,data=data)
+    covs<-model.frame(formula,rhs=2,lhs=0,data=data,na.action=na.pass)
     if(!is.null(subset)) covs<-subset(covs,subset)
     na.ok<-na.ok&complete.cases(covs)
     covs<-subset(covs,na.ok)
