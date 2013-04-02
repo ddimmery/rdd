@@ -83,8 +83,10 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
   if(!is.null(subset)){
     X<-X[subset]
     Y<-Y[subset]
+    if(!is.null(cluster)) cluster<-cluster[subset]
   }
   if (!is.null(cluster)) {
+    cluster<-as.character(cluster)
     robust.se <- function(model, cluster){
       M <- length(unique(cluster))
       N <- length(cluster)           
@@ -93,7 +95,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       uj  <- apply(estfun(model), 2, function(x) tapply(x, cluster, sum));
       rcse.cov <- dfc * sandwich(model, meat. = crossprod(uj)/N)
       rcse.se <- coeftest(model, rcse.cov)
-      return(list(rcse.cov, rcse.se))
+      return(rcse.se[2,2])
     }
   }
   na.ok<-complete.cases(X)&complete.cases(Y)
@@ -207,7 +209,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     if (is.null(cluster)) {
       o$se[ibw]<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
     } else {
-      o$se[ibw]<-robust.se(mod,cluster)[[2]][2,2]
+      o$se[ibw]<-robust.se(mod,cluster[na.ok][w>0])
     }
     o$z[ibw]<-o$est[ibw]/o$se[ibw]
     o$p[ibw]<-2*pnorm(abs(o$z[ibw]),lower.tail=F)
@@ -250,7 +252,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     if (is.null(cluster)) {
       o$se[ibw]<-coeftest(mod,vcovHC(mod,type=se.type))[2,2]
     } else {
-      o$se[ibw]<-robust.se(mod,cluster)[[2]][2,2]
+      o$se[ibw]<-robust.se(mod,cluster[na.ok][w>0])
     }
     o$z[ibw]<-o$est[ibw]/o$se[ibw]
     o$p[ibw]<-2*pnorm(abs(o$z[ibw]),lower.tail=F)
