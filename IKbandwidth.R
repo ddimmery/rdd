@@ -74,7 +74,7 @@ IKbandwidth <-function (X,Y,cutpoint=NULL,verbose=FALSE,kernel="triangular") {
   if(kernel=="triangular") {
     ck<-3.43754
   } else if (kernel=="rectangular") {
-    ck<-2.70192
+    ck<-5.40384
   } else if(kernel=="epanechnikov") {
     ck<-3.1999
   } else if(kernel=="quartic" | kernel=="biweight") {
