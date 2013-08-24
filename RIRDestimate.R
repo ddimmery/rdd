@@ -59,7 +59,6 @@ RIRDestimate<-function(formula,w.test,cutpoint,bws=NULL,w.q=c(0,.05),method=c("b
     libwin<-sapply(wins,getwins,type="liberal")
     conwin<-sapply(wins,getwins,type="conservative")
     out<-list(lapply(winwin,estit),liberal=lapply(libwin,estit),conservative=lapply(conwin,estit))
-    )
   } else {
     out<-lapply(bws,estit)
   }
