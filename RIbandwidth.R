@@ -79,7 +79,7 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
     if( nl == 0 | nr ==0) return(NULL)
     ri<-RIestimate(Y0 = Yl[il], Y1 = Yr[ir], M = max.sim, method = method, statistic = statistic, alpha = alpha, verbose = verbose)
     
-    diag<-c(Obsl=nl, Obsr=nr, Windowl=wl, Windowr=wr, exactFM=ri$exactFM, exactBN=ri$exactBN)
+    diag<-c(Obsl=nl, Obsr=nr, wlength=w, Windowl=wl, Windowr=wr, exactFM=ri$exactFM, exactBN=ri$exactBN)
     diag<-c(diag,t.pval=ri$t.test$p.value,meanl=ri$t.test$estimate[1],meanr=ri$t.test$estimate[2])
     diag<-c(diag,meansBN.pval=ri$meansBN.pval,meansFM.pval=ri$meansFM.pval,nullBN=ri$nullBN)
     
@@ -98,10 +98,11 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   close(prog)
   
   ret<-list()
+  ret$cutpoint<-cutpoint
   if(diag.out) ret$diag <- out
   
-  if(doMeans) { #Retrieve window for diff of means
-    ret$means<-list()
+  if(doMeans) { #Retrieve window for diff of means ## Rewrite everything below here to use only a window length instead of window borders
+    ret$means<-list() 
     ret$means$window <- getRIWindow(pval=out["t.pval",], alpha = alpha, rr = out["Windowr",], 
                                   rl = out["Windowl",], obsr=out["Obsr",] , obsl=out["Obsl",])
     

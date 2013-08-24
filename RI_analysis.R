@@ -1,5 +1,9 @@
 setwd("../rdd-dev/RI/")
-source("fn-balance-windows.R")
+source("RIestimate.R")
+source("RIstatsBN.R")
+source("RIstatsFM.R")
+source("getRIWindow.R")
+source("RIbandwidth.R")
 
 require("foreign") #For Stata data
 require("dummies") #Create dummies

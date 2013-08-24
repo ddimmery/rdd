@@ -1,4 +1,4 @@
-getRIWindow <- function(pval, alpha, rr, rl, obsr, obsl) {
+getRIWindow <- function(pval, alpha, rr, rl, obsr, obsl) { #Need to rewrite this to only use a bandwidth, not right and left window points
   if(sum(pval>=alpha)==0) {
     pval.min = 0
     wr.i = length(rr)
@@ -17,7 +17,7 @@ getRIWindow <- function(pval, alpha, rr, rl, obsr, obsl) {
     wl = rl[wr.i]
     Nr = obsr[wr.i]
     Nl = obsl[wr.i]
-    ## conservative window limit: wr such that p-value is 0.2 or more and never falls below 0.2 again
+    ## conservative window limit: wr such that p-value is alpha or more and never falls below alpha again
     cum = cumsum(pval >= alpha)
     test = cum[2:length(cum)] - cum[1:(length(cum)-1)]
     wr.i.con = max(which(test == 0))+2

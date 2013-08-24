@@ -6,6 +6,7 @@
 #' @param Y0 a numerical vector which contains the control sample
 #' @param Y1 a numerical vector which contains the treated sample
 #' @param M the maximum number of simulations to perform (will do exact inference if the necessary permutations are less than this value)
+#' @param tau the constant null effect to test against. default is the sharp null.
 #' @param verbose logical flag indicating whether to print more information to the terminal. Default is \code{FALSE}.
 #' @param alpha numeric, alpha-level of significance to use for rejection region
 #' @param method randomization method, one or more of binomial of fixed.margins
@@ -15,13 +16,14 @@
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 
-RIestimate <- function(Y0,Y1,M,verbose=FALSE,alpha=0.05,method=c("binomial","fixed.margins"),statistic=c("means","ks","wilcox")) {
-  n1 = length(Y1)
-  n0 = length(Y0)
-  n = n1 + n0
-  pr = n1/n
-  Y = c(Y1, Y0)
-  Tr = c(rep(1,n1), rep(0,n0))
+RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial","fixed.margins"),statistic=c("means","ks","wilcox")) {
+  n1 <- length(Y1)
+  n0 <- length(Y0)
+  n <- n1 + n0
+  pr <- n1/n
+  Y1 <- Y1-tau
+  Y <- c(Y1, Y0)
+  Tr <- c(rep(1,n1), rep(0,n0))
   
   # Do exact binomial inference
   doBN <- "binomial" %in% method
