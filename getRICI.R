@@ -27,10 +27,6 @@
     sddelt <- sum(abs(esttau-c(linit,uinit)))/2
 
     tau<-c(sign(linit)*sddelt/2+linit,linit)
-    print(tau)
-    print(sddelt)
-    print(linit)
-    print(uinit)
     pstr<-paste0(statistic,ri.type,".pval")
     pcalc<-c(NA,NA) 
     pcalc[1]<-RIestimate(Y0,Y1,
@@ -48,8 +44,6 @@
       tau<-tau[ord]
       pcalc<-pcalc[ord]
       
-      print(tau)
-      print(pcalc)
       #In case a p value is stuck in no man's land
       if(any(abs(pcalc)<1e-8)) {
         ip <- which(abs(pcalc)<1e-8)[1]
@@ -99,8 +93,6 @@
       tau<-tau[ord]
       pcalc<-pcalc[ord]
       
-      print(tau)
-      print(pcalc)
       #In case a p value is stuck in no man's land
       if(any(abs(pcalc)<1e-8)) {
         ip<-which(abs(pcalc)<1e-8)[1]
