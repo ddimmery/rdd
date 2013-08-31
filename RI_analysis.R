@@ -1,9 +1,4 @@
-setwd("../rdd-dev/RI/")
-source("RIestimate.R")
-source("RIstatsBN.R")
-source("RIstatsFM.R")
-source("getRIWindow.R")
-source("RIbandwidth.R")
+setwd("~/Dropbox/rdd-dev/RI/")
 
 require("foreign") #For Stata data
 require("dummies") #Create dummies
@@ -13,8 +8,8 @@ d<-read.dta("PoliticalDynastiesData.dta")
 d$housesenate <- ifelse(d$careerpath==3,1,0)
 
 #Set up location and year indicators
-reg <- data.frame(dummy(d$region))
-dec <- data.frame(dummy(d$decade))
+reg <- data.frame(dummy("region",data=d))
+dec <- data.frame(dummy("decade",data=d))
 reg<-reg[,-1]
 dec<-dec[,-c(1,10,20,21,22)]
 #region 1 and 1880 as basis
@@ -23,8 +18,8 @@ ndec<-names(dec)
 d<-cbind(d,reg)
 d<-cbind(d,dec)
 
-stt <- data.frame(dummy(d$state))
-yr <- data.frame(dummy(d$year))
+stt <- data.frame(dummy("state",data=d))
+yr <- data.frame(dummy("year",data=d))
 stt<-stt[,-10]
 yr<-yr[,-53]
 # #PA and 1892 as basis

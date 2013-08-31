@@ -16,7 +16,7 @@
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 
-RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial","fixed.margins"),statistic=c("means","ks","wilcox")) {
+RIestimate <- function(Y0,Y1,M=1000,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial","fixed.margins"),statistic=c("means","ks","wilcox")) {
   n1 <- length(Y1)
   n0 <- length(Y0)
   n <- n1 + n0
@@ -27,10 +27,10 @@ RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial
   
   # Do exact binomial inference
   doBN <- "binomial" %in% method
-  exactBN <- 2^n<M & doBN
+  exactBN <- 2^n<=M & doBN
   # Do exact fixed margins inference
   doFM <- "fixed.margins"%in%method
-  exactFM <- choose(n,n1)<M & doFM
+  exactFM <- choose(n,n1)<=M & doFM
   # is the outcome dichotomous
   isBinary <- sum(Y==1 | Y==0) == n
   
@@ -86,7 +86,8 @@ RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial
     TrFM <- combn(1:n,n1)
     ncomb <- ncol(TrFM)
     stats <- apply(TrFM,2,RIstatsFM,Y = Y, doKS = doKS, doWX = doWX, doMeans = doMeans, binary = isBinary)
-    
+   stats<-matrix(stats,ncol=ncomb)
+
     # Get data
     if(doMeans) {
       mns<-stats[1,]
@@ -109,6 +110,7 @@ RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial
       return(RIstatsFM(TrFM,Y = Y, doKS = doKS, doWX = doWX, doMeans = doMeans, binary = isBinary))
     }
     stats<-replicate(M,simFM())
+    stats<-matrix(stats,ncol=M)
     
     if(doMeans) {
       mns<-stats[1,]
@@ -144,7 +146,8 @@ RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial
       p = p/sum(p) # normalize so they sum to one -- remember I am excluding two possible outcomes (all Tr, all Co)
     }
     stats<- apply(TrBN,2,RIstatsBN, Y=Y, doKS = doKS, doWX = doWX, doMeans = doMeans, binary = isBinary)
-    
+    stats <- matrix(stats,ncol=ncol(TrBN))
+
     if(doMeans) {
       mns<-stats[1,]
       out$meansBN.pval<-sum(p[abs(mns)>=abs(mean0)])
@@ -167,6 +170,8 @@ RIestimate <- function(Y0,Y1,M,tau=0,verbose=FALSE,alpha=0.05,method=c("binomial
     out$nullBN<-sum(inullBN)
     if(out$nullBN>0) TrBN<-TrBN[,!inullBN]
     stats<-apply(TrBN,2,RIstatsBN,Y=Y, doKS = doKS, doWX = doWX, doMeans = doMeans, binary = isBinary)
+    stats <- matrix(stats,ncol=M)
+
     if(doMeans) {
       mns<-stats[1,]
       out$meansBN.pval<-sum(abs(mns)>=abs(mean0))/M

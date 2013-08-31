@@ -16,12 +16,12 @@
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 
-RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("binomial","fixed.margins"),
-                        statistic=c("means","ks","wilcox"), alpha=.05, max.sim=10000, diag.out=FALSE) {
-  sub<-complete.cases(X)&complete.cases(Y)
-  X <- X[sub]
+RIbandwidth <- function(Y, R, w.test, cutpoint=NULL, verbose=FALSE, method=c("binomial","fixed.margins"),
+                        statistic=c("means","ks","wilcox"), alpha=.05, max.sim=1000, diag.out=FALSE) {
+  sub<-complete.cases(R)&complete.cases(Y)
+  R <- R[sub]
   Y <- Y[sub]
-  Nx<-length(X)
+  Nx<-length(R)
   Ny<-length(Y)
   binary<- sum(Y==1 | Y==0) == length(Y)
   
@@ -36,15 +36,15 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   }
 
   # Sort to the right
-  indxr = order(X[X>=cutpoint], decreasing=FALSE)
-  Yr = Y[X>=cutpoint][indxr]
-  rr = X[X>=cutpoint][indxr]
+  indxr = order(R[R>=cutpoint], decreasing=FALSE)
+  Yr = Y[R>=cutpoint][indxr]
+  rr = R[R>=cutpoint][indxr]
   maxr = length(Yr)
   
   # Sort to the left
-  indxl = order(X[X<cutpoint], decreasing=TRUE)
-  Yl = Y[X<cutpoint][indxl]
-  rl = X[X<cutpoint][indxl]
+  indxl = order(R[R<cutpoint], decreasing=TRUE)
+  Yl = Y[R<cutpoint][indxl]
+  rl = R[R<cutpoint][indxl]
   maxl = length(Yl)
   mx = min(maxr, maxl)
   
@@ -66,8 +66,10 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   if( !doMeans & isBinary) stop("Can only calculate difference in means statistics with binary variable.")
   
   cat("Calculating bandwidths:\n")
-  prog<- txtProgressBar(initial=0, min=0, max = length(w.test), style=3)
+  maxi<- length(w.test)
   i<-0
+  cat(paste0(round(i/maxi),"%"))
+  i2p<-maxi/c(1024,512,256,128,64,32,16,8,4,2,1)
   test.window<-function(w) {
     wr <- cutpoint + w
     wl <- cutpoint - w
@@ -77,7 +79,7 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
     nl <- sum(il)
     n <- nr + nl
     if( nl == 0 | nr ==0) return(NULL)
-    ri<-RIestimate(Y0 = Yl[il], Y1 = Yr[ir], M = max.sim, method = method, statistic = statistic, alpha = alpha, verbose = verbose)
+    ri<-suppressWarnings(RIestimate(Y0 = Yl[il], Y1 = Yr[ir], M = max.sim, method = method, statistic = statistic, alpha = alpha, verbose = verbose))
     
     diag<-c(Obsl=nl, Obsr=nr, wlength=w, Windowl=wl, Windowr=wr, exactFM=ri$exactFM, exactBN=ri$exactBN)
     diag<-c(diag,t.pval=ri$t.test$p.value,meanl=ri$t.test$estimate[1],meanr=ri$t.test$estimate[2])
@@ -89,14 +91,17 @@ RIbandwidth <- function(Y, X, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
       diag<-c(diag,ksBN.pval=ri$ksBN.pval,ksFM.pval=ri$ksFM.pval)
     }
     i<<-i+1
-    setTxtProgressBar(prog,i)
+   #cat(".")
+    if(i>min(i2p)) {
+      cat(paste0(round(100*i/maxi),"%"))
+      i2p<<-i2p[i2p<i]
+    }
     return(diag)
   }
   #Begin RI window selection
   
   out<-sapply(w.test, test.window)
-  close(prog)
-  
+ print(out) 
   ret<-list()
   ret$cutpoint<-cutpoint
   if(diag.out) ret$diag <- out
