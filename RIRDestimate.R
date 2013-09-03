@@ -55,11 +55,12 @@ RIRDestimate<-function(
   # Do Wilcoxon tests
   doWX <- "wilcox" %in% statistic
   
-  estit<-function(bw,tau=0) {
+  estit<-function(bw,tau=0,nm=NULL) {
     Y0<-Y[X < 0 & X >= -bw]
     Y1<-Y[X >= 0 & X <= bw]
     o<-RIestimate(Y0,Y1,method=method,statistic=statistic,tau=tau,...)
     o$bw<-bw
+    o$name <- paste0(nm," ",round(bw,2) )
     return(o)
   }
   
@@ -162,9 +163,9 @@ RIRDestimate<-function(
 
     }
     
-    out<-list(liberal=lapply(libwin,estit),conservative=lapply(conwin,estit))
+    out<-list(liberal=lapply(libwin,estit,nm="liberal"),conservative=lapply(conwin,estit,nm="conservative"))
   } else if (!is.null(bws)) {
-    out<-lapply(bws,estit)
+    out<-lapply(bws,estit,nm="Specified")
   } else {
     stop("No bandwidth or means of calculating bandwidth found.")
   }

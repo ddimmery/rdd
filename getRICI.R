@@ -2,7 +2,7 @@
 #  which assumes constant treatment effects
 #  ** This should be folded out into an external function **
 #  ** Call it when summary.RIRD is called **
-  getCI <- function(Y,X,bw,alpha=.05,method,statistic="means",prec=.0001,...) {
+  getRICI <- function(Y,X,bw,alpha=.05,method,statistic="means",prec=.0001,...) {
     #So the data resides in x$t.test$p.value
     #Want to make this equal to alpha/2 & 1-alpha/2 by
     #changing tau
@@ -26,7 +26,7 @@
 
     sddelt <- sum(abs(esttau-c(linit,uinit)))/2
 
-    tau<-c(sign(linit)*sddelt/2+linit,linit)
+    tau<-c(sign(linit)*(sddelt/2+abs(linit)),linit)
     pstr<-paste0(statistic,ri.type,".pval")
     pcalc<-c(NA,NA) 
     pcalc[1]<-RIestimate(Y0,Y1,
@@ -75,7 +75,7 @@
     ltau <- tau[ip]
     lp <- pcalc[ip]
 
-    tau<-c(sign(uinit)*sddelt/2+uinit,uinit)
+    tau<-c(sign(uinit)*(sddelt/2+abs(uinit)),uinit)
 
     pcalc[1]<-RIestimate(Y0,Y1,
                          method=method,statistic=statistic,tau=tau[1],...)[pstr][[1]]
