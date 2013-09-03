@@ -43,8 +43,8 @@ RIestimate <- function(Y0,Y1,M=1000,tau=0,verbose=FALSE,alpha=0.05,method=c("bin
   
   if( !(doMeans|doKS|doWX)) stop("Must select at least one statistic to calculate")
   if( !doMeans & isBinary) stop("Can only calculate difference in means statistics with binary variable.")
-  cat("\n")
   if(verbose) {
+    cat("\n") 
     cat("Number treated: ",n1,"\n")
     cat("Number untreated: ",n0,"\n")
     cat("Binomial randomization inference: ", ifelse(doBN,"YES","NO"),"\n")

@@ -1,6 +1,6 @@
 RIRDestimate<-function(
                        formula,
-                       w.test,
+                       w.test=NULL,
                        cutpoint=NULL,
                        bws=NULL,
                        w.q=c(0,.05),
@@ -58,7 +58,9 @@ RIRDestimate<-function(
   estit<-function(bw,tau=0) {
     Y0<-Y[X < 0 & X >= -bw]
     Y1<-Y[X >= 0 & X <= bw]
-    RIestimate(Y0,Y1,method=method,statistic=statistic,tau=tau,...)
+    o<-RIestimate(Y0,Y1,method=method,statistic=statistic,tau=tau,...)
+    o$bw<-bw
+    return(o)
   }
   
   if(is.null(bws) & !is.null(covs)) {
@@ -167,6 +169,7 @@ RIRDestimate<-function(
     stop("No bandwidth or means of calculating bandwidth found.")
   }
 
+  out$call<-call
   class(out)<-"RIRD"
   return(out)
 }

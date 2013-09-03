@@ -16,7 +16,7 @@
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 
-RIbandwidth <- function(Y, R, w.test, cutpoint=NULL, verbose=FALSE, method=c("binomial","fixed.margins"),
+RIbandwidth <- function(Y, R, w.test=NULL, cutpoint=NULL, verbose=FALSE, method=c("binomial","fixed.margins"),
                         statistic=c("means","ks","wilcox"), alpha=.05, max.sim=1000, diag.out=FALSE) {
   sub<-complete.cases(R)&complete.cases(Y)
   R <- R[sub]
@@ -63,8 +63,8 @@ RIbandwidth <- function(Y, R, w.test, cutpoint=NULL, verbose=FALSE, method=c("bi
   doWX <- "wilcox" %in% statistic
   
   if( !(doMeans|doKS|doWX)) stop("Must select at least one statistic to calculate")
-  if( !doMeans & isBinary) stop("Can only calculate difference in means statistics with binary variable.")
-  
+  if( !doMeans & isBinary) stop("Can only calculate difference in means statistics with binary variable.") 
+  if(is.null(w.test)) stop("Must specify window lengths to test.")
   cat("Calculating bandwidths:\n")
   maxi<- length(w.test)
   i<-0

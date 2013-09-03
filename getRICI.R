@@ -56,8 +56,8 @@
       }
 
       if(abs(pcalc[2]-p.target)<prec) break
-      if(abs(tdif)<prec/10) break
-      if(abs(pdif)<prec/10) {
+      if(abs(tdif)<prec/100) break
+      if(abs(pdif)<1e-8) {
         tau[2] <- rnorm(1,tau[2],sddelt/2)
         pcalc[2] <- RIestimate(Y0,Y1,
                                method=method,
@@ -71,8 +71,9 @@
                            statistic=statistic,
                            tau=tau[2],...)[pstr][[1]]
     } 
-    ltau <- tau[2]
-    lp <- pcalc[2]
+    ip <- which.min(abs(pcalc-p.target))
+    ltau <- tau[ip]
+    lp <- pcalc[ip]
 
     tau<-c(sign(uinit)*sddelt/2+uinit,uinit)
 
@@ -105,8 +106,8 @@
       }
 
       if(abs(pcalc[2]-p.target)<prec) break
-      if(abs(tdif)<prec/10) break
-      if(abs(pdif)<prec/10) {
+      if(abs(tdif)<prec/100) break
+      if(abs(pdif)<1e-8) {
         tau[2] <- rnorm(1,tau[2],sddelt)
         pcalc[2] <- RIestimate(Y0,Y1,
                                method=method,
@@ -121,8 +122,9 @@
                            tau=tau[2],...)[pstr][[1]]
     } 
 
-    utau <- tau[2]
-    up <- pcalc[2]
+    ip <- which.min(abs(pcalc-p.target))
+    utau <- tau[ip]
+    up <- pcalc[ip]
 
     alpha <- 1 - up + lp
     ci <- c(lwr=ltau,upr=utau)
