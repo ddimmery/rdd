@@ -20,7 +20,12 @@ getRIWindow <- function(pval, alpha, rr, rl, obsr, obsl) { #Need to rewrite this
     ## conservative window limit: wr such that p-value is alpha or more and never falls below alpha again
     cum = cumsum(pval >= alpha)
     test = cum[2:length(cum)] - cum[1:(length(cum)-1)]
-    wr.i.con = max(which(test == 0))+2
+    testi = test == 0 
+    if(!any(testi)) 
+      wr.i.con <- length(testi)+2
+    else
+      wr.i.con = max(which(testi))+2
+    
     if(wr.i.con > length(rr)) wr.i.con = length(rr)
     wr.con = rr[wr.i.con]
     wl.con = rl[wr.i.con]  

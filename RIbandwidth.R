@@ -68,7 +68,7 @@ RIbandwidth <- function(Y, R, w.test=NULL, cutpoint=NULL, verbose=FALSE, method=
   cat("Calculating bandwidths:\n")
   maxi<- length(w.test)
   i<-0
-  cat(paste0(round(i/maxi),"%"))
+  cat(paste0(round(i/maxi),"% "))
   i2p<-maxi/c(1024,512,256,128,64,32,16,8,4,2,1)
   test.window<-function(w) {
     wr <- cutpoint + w
@@ -79,6 +79,7 @@ RIbandwidth <- function(Y, R, w.test=NULL, cutpoint=NULL, verbose=FALSE, method=
     nl <- sum(il)
     n <- nr + nl
     if( nl == 0 | nr ==0) return(NULL)
+    #Need to write in an overall warning when there are ties for a cov
     ri<-suppressWarnings(RIestimate(Y0 = Yl[il], Y1 = Yr[ir], M = max.sim, method = method, statistic = statistic, alpha = alpha, verbose = verbose))
     
     diag<-c(Obsl=nl, Obsr=nr, wlength=w, Windowl=wl, Windowr=wr, exactFM=ri$exactFM, exactBN=ri$exactBN)
@@ -93,7 +94,7 @@ RIbandwidth <- function(Y, R, w.test=NULL, cutpoint=NULL, verbose=FALSE, method=
     i<<-i+1
    #cat(".")
     if(i>min(i2p)) {
-      cat(paste0(round(100*i/maxi),"%"))
+      cat(paste0(round(100*i/maxi),"% "))
       i2p<<-i2p[i2p<i]
     }
     return(diag)
@@ -101,7 +102,7 @@ RIbandwidth <- function(Y, R, w.test=NULL, cutpoint=NULL, verbose=FALSE, method=
   #Begin RI window selection
   
   out<-sapply(w.test, test.window)
- print(out) 
+  cat("\n")
   ret<-list()
   ret$cutpoint<-cutpoint
   if(diag.out) ret$diag <- out
