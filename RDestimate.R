@@ -55,6 +55,7 @@
 #' For a fuzzy design, a list of lists is returned, each with two elements: \code{firststage}, the first stage \code{lm}
 #' object, and \code{iv}, the \code{ivreg} object. A model is returned for each corresponding bandwidth.}
 #' \item{frame}{(if requested) Returns the model frame used in fitting.}
+#' \item{index}{(if requested) Returns the index of observations used in estimation (weight greater than zero)
 #' @seealso \code{\link{summary.RD}}, \code{\link{plot.RD}}, \code{\link{DCdensity}} \code{\link{IKbandwidth}}, \code{\link{kernelwts}}, \code{\link{vcovHC}}, 
 #' \code{\link{ivreg}}, \code{\link{lm}}
 #' @references Lee, David and Thomas Lemieux. (2010) "Regression Discontinuity Designs in Economics," \emph{Journal of Economic Literature}. 48(2): 281-355. \url{http://www.aeaweb.org/articles.php?doi=10.1257/jel.48.2.281}
@@ -74,7 +75,7 @@
 #' # Efficiency gains can be made by including covariates
 #' RDestimate(y~x|cov)
 
-RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel="triangular", se.type="HC1", cluster=NULL, verbose=FALSE, model=FALSE, frame=FALSE) {
+RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel="triangular", se.type="HC1", cluster=NULL, verbose=FALSE, model=FALSE, frame=FALSE,index=FALSE) {
   call<-match.call()
   if(missing(data)) data<-environment(formula)
   formula<-as.Formula(formula)
@@ -166,6 +167,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     o$model$iv<-list()
   }
   o$frame<-list()
+  o$index<-list()
   o$na.action<-which(na.ok==FALSE)
   class(o)<-"RD"
   X<-X-cutpoint
@@ -217,6 +219,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
 
     if(model) o$model[[ibw]]=mod
     if(frame) o$frame[[ibw]]=dat.out
+    if(index) o$index[[ibw]]=which(w>0)
 
   } else {
     if(verbose){
@@ -262,7 +265,8 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       o$model$firststage[[ibw]]<-mod1
       o$model$iv[[ibw]]=mod
     }
-    if(frame) o$frame=dat.out
+    if(frame) o$frame[[ibw]]=dat.out
+    if(index) o$index[[ibw]]=which(w>0)
   }
   }
   return(o)
