@@ -9,6 +9,7 @@
 #' @param verbose logical flag specifying whether to print diagnostic information to the terminal. (defaults to \code{FALSE})
 #' @param plot logical flag indicating whether to plot the histogram and density estimations (defaults to \code{TRUE}). The user may wrap this function in additional graphical options to modify the plot.
 #' @param ext.out logical flag indicating whether to return extended output. When \code{FALSE} (the default) \code{DCdensity} will return only the p-value of the test. When \code{TRUE}, \code{DCdensity} will return the additional information documented below.
+#' @param htest logical flag indicating whether to return an \code{"htest"} object compatible with base R's hypothesis test output.
 #' @return If \code{ext.out} is \code{FALSE}, only the p value will be returned. Additional output is enabled when \code{ext.out} is \code{TRUE}. In this case, a list will be returned with the following elements:
 #' \item{theta}{the estimated log difference in heights at the cutpoint}
 #' \item{se}{the standard error of \code{theta}}
@@ -32,7 +33,7 @@
 #' x<-x+2*(runif(1000,-1,1)>0&x<0)
 #' DCdensity(x,0)
 
-DCdensity <- function(runvar,cutpoint,bin=NULL,bw=NULL,verbose=FALSE,plot=TRUE,ext.out=FALSE) {
+DCdensity <- function(runvar,cutpoint,bin=NULL,bw=NULL,verbose=FALSE,plot=TRUE,ext.out=FALSE,htest=FALSE) {
   runvar <- runvar[complete.cases(runvar)]
   #Grab some summary vars
   rn <- length(runvar)
@@ -225,5 +226,17 @@ DCdensity <- function(runvar,cutpoint,bin=NULL,bw=NULL,verbose=FALSE,plot=TRUE,e
                 data=data.frame(cellmp,cellval)
                )
           )
-  return(p)
+  else if (htest) {
+      # Return an htest object, for compatibility with base R test output.
+      structure(list(
+          statistic   = c(`z` = z),
+          p.value     = p,
+          method      = "McCrary (2008) sorting test",
+          parameter   = c(`binwidth`  = bin,
+                          `bandwidth` = bw,
+                          `cutpoint`  = cutpoint),
+          alternative = "no apparent sorting"),
+          class = "htest")
+  }
+  else return(p)
 }
