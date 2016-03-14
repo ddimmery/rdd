@@ -57,6 +57,13 @@
 #' \item{frame}{(if requested) Returns the model frame used in fitting.}
 #' @seealso \code{\link{summary.RD}}, \code{\link{plot.RD}}, \code{\link{DCdensity}} \code{\link{IKbandwidth}}, \code{\link{kernelwts}}, \code{\link{vcovHC}}, 
 #' \code{\link{ivreg}}, \code{\link{lm}}
+#' @details Covariates are problematic for inclusion in the regression
+#' discontinuity design. This package allows their inclusion, but cautions
+#' against them insomuch as is possible. When covariates are included in the
+#' specification, they are simply included as exogenous regressors. In the
+#' sharp design, this means they are simply added into the regression equation,
+#' uninteracted with treatment. Likewise for the fuzzy design, in which they
+#' are added as regressors in both stages of estimation.
 #' @references Lee, David and Thomas Lemieux. (2010) "Regression Discontinuity Designs in Economics," \emph{Journal of Economic Literature}. 48(2): 281-355. \url{http://www.aeaweb.org/articles.php?doi=10.1257/jel.48.2.281}
 #' @references Imbens, Guido and Thomas Lemieux. (2010) "Regression discontinuity designs: A guide to practice," \emph{Journal of Econometrics}. 142(2): 615-635. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.001}
 #' @references Lee, David and David Card. (2010) "Regression discontinuity inference with specification error," \emph{Journal of Econometrics}. 142(2): 655-674. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.003}
@@ -194,7 +201,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
     }
     if(!is.null(covs)) {
       data<-data.frame(Y,Tr,Xl,Xr,covs,w)
-      form<-as.formula(paste("Y~Tr+Xl+Xr+",paste("Tr*",names(covs),collapse="+",sep=""),sep=""))
+      form<-as.formula(paste("Y~Tr+Xl+Xr+",paste(names(covs),collapse="+",sep=""),sep=""))
     } else {
       data<-data.frame(Y,Tr,Xl,Xr,w)
       form<-as.formula(Y~Tr+Xl+Xr)
@@ -233,7 +240,7 @@ RDestimate<-function(formula, data, subset=NULL, cutpoint=NULL, bw=NULL, kernel=
       form<-as.Formula(paste(
               "Y~Z+Xl+Xr+",paste(names(covs),collapse="+"),
               "|Tr+Xl+Xr+",paste(names(covs),collapse="+"),sep=""))
-      form1<-as.Formula(paste("Z~Tr+Xl+Xr+",paste("Tr*",names(covs),collapse="+",sep="")))
+      form1<-as.Formula(paste("Z~Tr+Xl+Xr+",paste(names(covs),collapse="+",sep="")))
     } else {
       data<-data.frame(Y,Tr,Xl,Xr,Z,w)
       form<-as.Formula(Y~Z+Xl+Xr|Tr+Xl+Xr)
