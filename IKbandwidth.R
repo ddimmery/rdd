@@ -12,6 +12,7 @@
 #' \code{"gaussian"}, and \code{"cosine"}.
 #' @return The optimal bandwidth
 #' @references Imbens, Guido and Karthik Kalyanaraman. (2009) "Optimal Bandwidth Choice for the regression discontinuity estimator," \emph{NBER Working Paper Series}. 14726. \url{http://www.nber.org/papers/w14726}
+#' @importFrom stats complete.cases sd median lm coef
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 

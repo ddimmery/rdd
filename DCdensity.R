@@ -21,6 +21,8 @@
 #' \item{data}{a dataframe for the binning of the histogram. Columns are \code{cellmp} (the midpoints of each cell) and \code{cellval} (the normalized height of each cell)}
 #' @references McCrary, Justin. (2008) "Manipulation of the running variable in the regression discontinuity design: A density test," \emph{Journal of Econometrics}. 142(2): 698-714. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.005}
 #' @include kernelwts.R
+#' @importFrom stats complete.cases sd lm coef predict pnorm
+#' @importFrom graphics lines points
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 #' @examples

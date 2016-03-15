@@ -1,4 +1,4 @@
-rdd 0.54
+rdd 0.57
 ========
 
 This package provides the tools to undertake estimation in Regression 
@@ -21,6 +21,14 @@ Drew Dimmery <[drewd@nyu.edu](mailto:drewd@nyu.edu)>
 Changelog
 ---------
 
+    Version: 0.57
+    * Fixed covariate handling.
+
+    Version: 0.56
+    * Fixed bug in plot.RD.
+
+    Version: 0.55
+    * Added dependence on Formula.
     * Fixed an odd bug with fuzzy RD, which caused misreporting of summary information.
 
     Version: 0.54

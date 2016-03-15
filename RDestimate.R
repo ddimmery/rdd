@@ -68,7 +68,9 @@
 #' @references Imbens, Guido and Thomas Lemieux. (2010) "Regression discontinuity designs: A guide to practice," \emph{Journal of Econometrics}. 142(2): 615-635. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.001}
 #' @references Lee, David and David Card. (2010) "Regression discontinuity inference with specification error," \emph{Journal of Econometrics}. 142(2): 655-674. \url{http://dx.doi.org/10.1016/j.jeconom.2007.05.003}
 #' @references Angrist, Joshua and Jorn-Steffen Pischke. (2009) \emph{Mostly Harmless Econometrics}. Princeton: Princeton University Press.
-#' @import AER sandwich lmtest
+#' @import Formula AER sandwich lmtest
+#' @importFrom stats model.frame na.pass complete.cases lm coef pnorm qnorm
+#' as.formula
 #' @include IKbandwidth.R 
 #' @include kernelwts.R
 #' @export

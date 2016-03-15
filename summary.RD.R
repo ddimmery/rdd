@@ -11,6 +11,7 @@
 #' SEs, z-values and p-values for each estimated bandwidth.}
 #' \item{fstat}{A global F-test of the corresponding model}
 #' @include RDestimate.R
+#' @importFrom stats residuals pf
 #' @export
 #' @author Drew Dimmery <\email{drewd@@nyu.edu}>
 
