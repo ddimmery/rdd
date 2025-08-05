@@ -36,6 +36,7 @@ IKbandwidth <-function (X,Y,cutpoint=NULL,verbose=FALSE,kernel="triangular") {
   #Now we should be ready to start
   #Pilot bandwidth
   h1<-1.84*sd(X)*Nx^(-1/5)
+  if (verbose) cat("Initial Pilot Bandwidth: ", sprintf("%.3f", h1), "\n")
   left<-X>=(cutpoint-h1) & X<=cutpoint
   right<-X>cutpoint & X<=(cutpoint+h1)
   Nl<-sum(left)
@@ -57,6 +58,10 @@ IKbandwidth <-function (X,Y,cutpoint=NULL,verbose=FALSE,kernel="triangular") {
   #New bandwidth estimate
   h2l<-3.56*(Nl^(-1/7))*(varY/(fbarx*max(m3^2,0.01)))^(1/7)
   h2r<-3.56*(Nr^(-1/7))*(varY/(fbarx*max(m3^2,0.01)))^(1/7)
+  if (verbose) {
+    cat("Second Stage Bandwidth Estimate - Left: ", sprintf("%.3f", h2l), "\n")
+    cat("Second Stage Bandwidth Estimate - Right: ", sprintf("%.3f", h2r), "\n")
+  }
   left<-(X>=(cutpoint-h2l)) & (X<cutpoint)
   right<-(X>=cutpoint) & (X<= (cutpoint+h2r))
   Nl<-sum(left)

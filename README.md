@@ -1,3 +1,6 @@
+# PLEASE NOTE, THIS PROJECT IS NO LONGER BEING MAINTAINED
+This package is [no longer being maintained](https://ddimmery.com/software). Users should switch to [actively maintained RD tools](https://rdpackages.github.io/). 
+
 rdd 0.57
 ========
 
